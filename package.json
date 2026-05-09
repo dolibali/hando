@@ -1,0 +1,45 @@
+{
+  "name": "hando",
+  "version": "0.1.0",
+  "description": "Local-first AI agent handoff packets over CLI and MCP.",
+  "type": "module",
+  "bin": {
+    "hando": "./dist/src/main.js"
+  },
+  "files": [
+    "dist/src",
+    "DESIGN.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "dev": "tsx src/main.ts",
+    "cli": "tsx src/main.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "handoff",
+    "mcp",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.0",
+    "commander": "^14.0.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

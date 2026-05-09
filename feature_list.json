@@ -1,0 +1,38 @@
+[
+  {
+    "category": "functional",
+    "description": "CLI can create, find, read, archive, and restore local handoff tasks",
+    "steps": [
+      "Run `hando setup` or `npm run cli -- setup`",
+      "Run `hando save \"Example task\" --summary \"Background, progress, next steps\"`",
+      "Run `hando ls` and verify the task appears",
+      "Run `hando resume \"Example\"` and verify the task content is returned",
+      "Run `hando done <id>` and verify it moves to archive",
+      "Run `hando restore <id>` and verify it returns to active tasks"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "MCP server exposes save, resume, ls, get, archive, and restore tools",
+    "steps": [
+      "Run `hando serve` or `npm run cli -- serve`",
+      "Connect with an MCP stdio client",
+      "Call `save` with title and summary",
+      "Call `resume` with a natural language query",
+      "Call `archive` and `restore` for the saved task"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Task storage stays Markdown-only and centered on task.md",
+    "steps": [
+      "Create a task with `save`",
+      "Inspect `~/.hando/tasks/<task-id>/task.md`",
+      "Verify no git.json or SQLite database is required",
+      "Verify current code status is written inside task.md"
+    ],
+    "passes": true
+  }
+]

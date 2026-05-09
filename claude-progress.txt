@@ -1,0 +1,13 @@
+Session: 2026-05-09
+
+What was set up
+- Started Hando from the existing DESIGN.md.
+- Added long-running task tracking files for future agent handoffs.
+- Planned the first usable implementation around Markdown-only task storage, CLI commands, and stdio MCP tools.
+
+Current status
+- First usable implementation is complete.
+- CLI supports setup, ls, save, resume, get, done/archive, restore, serve, and doctor.
+- MCP stdio server exposes save, resume, ls, get, archive, and restore.
+- Task storage is Markdown-only under ~/.hando/tasks/<task-id>/task.md and ~/.hando/archive/<task-id>/task.md.
+- Verification passed: typecheck, tests, build, CLI smoke, MCP smoke, npm pack dry-run.
