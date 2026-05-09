@@ -4,6 +4,8 @@
 
 Hando 是一个本地优先的 AI Agent 任务交接包工具。
 
+Hando 的 npm 包名是 `hando-ai`，安装后的 CLI 命令名是 `hando`。
+
 它要解决的问题是：当 Codex、Claude Code、Gemini、Cursor 等 AI Agent 做任务做到一半时，因为额度耗尽、上下文窗口不足、工具切换、会话中断等原因，用户需要把当前任务快速交接给另一个 Agent 继续完成。
 
 Hando 不追求在任务开始时就完整管理任务，也不追求记录完整聊天历史。它只在“需要交接”时工作：用户主动要求保存现场，或者 Agent 预计自己即将中断时，创建或更新一份足够清楚的任务交接包。
@@ -378,6 +380,14 @@ CLI 是人类查看和手动兜底入口。
 
 ### 8.1 默认命令
 
+Hando 发布到 npm 时使用包名 `hando-ai`：
+
+```bash
+npm install -g hando-ai
+```
+
+安装后使用的命令仍然是 `hando`。
+
 ```bash
 hando
 ```
@@ -420,6 +430,24 @@ hando doctor
 - `hando setup`：初始化配置和目录。
 - `hando serve`：启动 stdio MCP 服务。
 - `hando doctor`：检查本地配置和目录是否可用。
+
+### 8.4 MCP 客户端配置
+
+Codex 等 MCP 客户端可以不全局安装，直接通过 `npx` 启动 Hando：
+
+```toml
+[mcp_servers.hando]
+command = "npx"
+args = ["-y", "hando-ai", "serve"]
+```
+
+如果已经全局安装：
+
+```toml
+[mcp_servers.hando]
+command = "hando"
+args = ["serve"]
+```
 
 ## 9. Agent 使用协议
 
@@ -539,4 +567,4 @@ Agent 应遵守以下规则：
 - v1 使用本地 Markdown 文件作为唯一真相源。
 - v1 的主要调用者是 AI Agent。
 - CLI 主要用于人类查看和手动兜底。
-- 默认项目名、包名、CLI 命令都使用 `hando`。
+- 默认项目名和 CLI 命令使用 `hando`，npm 包名使用 `hando-ai`。
