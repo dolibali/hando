@@ -1,0 +1,172 @@
+# Claude Code 集成 Hando 规则模板
+
+这份文档用于让 Claude Code 在任务可能中断、上下文变长、或需要交给 Codex/Gemini/Cursor 等其他 Agent 续做时，主动使用 Hando MCP 保存任务断点。
+
+Hando 不能读取 Claude Code 的真实额度，也不能主动监控会话状态。它只是一个 MCP 工具。是否保存断点由 Claude Code 根据用户指令、上下文压力、工具失败、任务阶段边界等信号主动判断。
+
+## 推荐规则
+
+把下面内容加入 Claude Code 的全局或项目 instructions：
+
+```text
+当用户要求“交接”、“保存进度”、“保存断点”、“让 Codex/Claude/Gemini/Cursor 接着做”，或你判断当前任务可能因为额度、上下文窗口、工具限制、会话中断而无法继续时，必须优先调用 Hando MCP 的 save 工具保存任务断点。
+
+当任务进入明显阶段边界时，如果后续仍有未完成工作，也应该主动调用 Hando save 保存可续做断点。
+
+调用 Hando save 时：
+- title 必须是真实任务名，例如“优化 setup token 展示和保存”，不能写“额度快满了”或“保存进度”。
+- summary 必须足够详细，让下一个 Agent 不读历史对话也能继续。
+- summary 至少包含：任务背景、任务目标、当前实现、当前进度、已完成内容、后续工作、相关文件、验证情况、阻塞点和风险、给下一个 Agent 的明确指令。
+- 不要直接编辑 ~/.hando 下的文件；必须通过 Hando MCP 工具保存和恢复。
+
+当用户要求继续之前的任务，或描述“继续刚才/上次/某个任务”时，应先调用 Hando MCP 的 resume 工具查找任务交接包。读取返回内容后，进入返回的 cwd，确认 branch，并重新运行 git status 或等价检查，再继续开发。
+```
+
+## MCP 配置
+
+如果使用已发布的 npm 包：
+
+```bash
+claude mcp add --transport stdio --scope user hando -- npx -y hando-ai serve
+```
+
+Windows 原生命令行建议使用 `cmd /c`：
+
+```powershell
+claude mcp add --transport stdio --scope user hando -- cmd /c npx -y hando-ai serve
+```
+
+如果要测试源码版：
+
+```powershell
+claude mcp add --transport stdio --scope user hando -- node C:\Users\<你>\work\hando\dist\src\main.js serve
+```
+
+验证：
+
+```bash
+claude mcp list
+claude mcp get hando
+```
+
+进入 Claude Code 后也可以运行：
+
+```text
+/mcp
+```
+
+确认 `hando` 连接成功，并能看到工具：
+
+```text
+save
+resume
+ls
+get
+archive
+restore
+```
+
+## 什么时候主动保存
+
+Claude Code 应在这些场景调用 `save`：
+
+- 用户明确说“额度快没了”、“帮我交接”、“保存当前进度”、“让 Codex 接着做”。
+- 当前任务还没完成，但上下文已经很长，继续开发存在丢失背景的风险。
+- 工具调用失败、模型额度/会话限制导致任务可能无法继续。
+- 完成了一个阶段，但还有明确后续工作。
+- 即将结束当前会话，且任务未完成。
+
+Claude Code 不需要在任务刚开始时保存，也不需要每次小修改都保存。
+
+## 保存内容要求
+
+`save.summary` 推荐结构：
+
+```markdown
+## 任务背景
+
+用户为什么要做这个任务，最初问题是什么。
+
+## 任务目标
+
+这次希望完成什么结果。
+
+## 当前实现
+
+已经采用的方案、关键文件、重要设计选择。
+
+## 当前进度
+
+做到哪里了，哪些完成了，哪些没完成。
+
+## 后续工作
+
+下一步应该做什么，建议从哪里开始。
+
+## 当前代码状态
+
+说明重要文件、未提交修改、当前分支；Hando 也会自动补充轻量代码状态。
+
+## 验证情况
+
+已经跑过哪些命令或测试，结果如何。
+
+## 风险和注意事项
+
+有哪些坑、失败尝试、不要重复做的事。
+
+## 给下一个 Agent 的指令
+
+请从哪里继续，优先做什么。
+```
+
+## 接力恢复流程
+
+当用户说“继续上次任务”或给出自然语言描述时：
+
+1. 调用 Hando `resume`，用用户描述作为 `query`。
+2. 如果返回唯一任务，读取完整交接内容。
+3. 如果返回多个候选，向用户确认要恢复哪个 `id`，或选择最相关候选后用 `get` 读取。
+4. 根据返回的 `cwd` 进入工作目录。
+5. 确认 `branch`，并运行 `git status`。
+6. 结合交接内容和当前代码状态继续开发。
+
+## 示例
+
+用户：
+
+```text
+保存当前进度，后面让 Codex 接着做。
+```
+
+Claude Code 应调用 Hando `save`：
+
+```json
+{
+  "title": "优化 Hando MCP 说明与断点保存",
+  "summary": "## 任务背景\n...\n## 任务目标\n...\n## 当前实现\n...\n## 当前进度\n...\n## 后续工作\n...\n## 验证情况\n...\n## 给下一个 Agent 的指令\n..."
+}
+```
+
+用户在新会话中说：
+
+```text
+继续 Hando MCP 说明那个任务。
+```
+
+Claude Code 应先调用 Hando `resume`：
+
+```json
+{
+  "query": "Hando MCP 说明"
+}
+```
+
+然后根据返回的 `cwd`、`branch` 和交接正文继续任务。
+
+## 重要边界
+
+- Hando 不会自动知道 Claude Code 额度或上下文是否真的快满。
+- Hando 不会替 Claude Code 总结任务；总结必须由 Claude Code 写入 `summary`。
+- Hando 不会自动修改代码；它只保存、恢复、列出、归档任务交接包。
+- Claude Code 不应为了保存断点而编造不存在的进度或测试结果。
