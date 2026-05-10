@@ -37,6 +37,25 @@ Hando stores task packets in:
 ~/.hando/archive/<task-id>/task.md
 ```
 
+## Agent Responsibility
+
+Hando is a thin storage and retrieval tool. The calling agent must write the handoff content.
+
+When an agent calls `save`, it should first summarize the task clearly:
+
+- background
+- goal
+- current implementation
+- current progress
+- next steps
+- risks and blockers
+- validation status
+- explicit instructions for the next agent
+
+Hando then persists that agent-written summary into `task.md` and adds lightweight code status.
+
+When an agent calls `resume`, Hando returns saved task context. The agent should inspect the repo, verify current code state, and continue the task.
+
 ## Codex MCP Config
 
 Recommended config without global install:
