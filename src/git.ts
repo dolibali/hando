@@ -18,7 +18,7 @@ export async function collectGitSnapshot(cwd: string): Promise<GitSnapshot> {
   }
 
   const [branch, remote, status] = await Promise.all([
-    git(["branch", "--show-current"], cwd).catch(() => ""),
+    currentBranch(cwd),
     git(["config", "--get", "remote.origin.url"], cwd).catch(() => ""),
     git(["status", "--porcelain=v1"], cwd).catch(() => ""),
   ]);
@@ -26,7 +26,7 @@ export async function collectGitSnapshot(cwd: string): Promise<GitSnapshot> {
   return {
     available: true,
     cwd,
-    branch: branch.trim() || undefined,
+    branch: branch || undefined,
     gitRemote: remote.trim() || undefined,
     hasUncommittedChanges: changedFiles.length > 0,
     changedFiles,
@@ -40,6 +40,7 @@ export function renderCodeStatus(snapshot: GitSnapshot): string {
       "## 当前代码状态",
       "",
       `- 工作目录：${snapshot.cwd}`,
+      "- 当前分支：not_a_git_repository",
       "- Git 状态：不可用",
       `- 原因：${snapshot.reason ?? "unknown"}`,
       `- 采集时间：${snapshot.capturedAt}`,
@@ -74,6 +75,15 @@ export function renderCodeStatus(snapshot: GitSnapshot): string {
 async function git(args: readonly string[], cwd: string): Promise<string> {
   const result = await execFileAsync("git", [...args], { cwd });
   return result.stdout;
+}
+
+async function currentBranch(cwd: string): Promise<string> {
+  const branch = (await git(["branch", "--show-current"], cwd).catch(() => "")).trim();
+  if (branch !== "") {
+    return branch;
+  }
+  const ref = (await git(["rev-parse", "--abbrev-ref", "HEAD"], cwd).catch(() => "")).trim();
+  return ref === "" ? "unknown" : ref;
 }
 
 function parsePorcelainStatus(output: string): ChangedFile[] {

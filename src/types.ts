@@ -30,10 +30,9 @@ export interface TaskMeta {
   readonly id: string;
   readonly title: string;
   readonly project?: string;
-  readonly cwd?: string;
+  readonly cwd: string;
   readonly gitRemote?: string;
-  readonly branch?: string;
-  readonly sourceAgent?: string;
+  readonly branch: string;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly tags: readonly string[];
@@ -52,7 +51,6 @@ export interface SaveInput {
   readonly id?: string;
   readonly project?: string;
   readonly tags?: readonly string[];
-  readonly agent?: string;
   readonly cwd?: string;
 }
 

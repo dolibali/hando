@@ -55,7 +55,6 @@ export function createCli(service = new HandoService()): Command {
     .option("-i, --id <id>", "Existing task id to update")
     .option("-p, --project <project>", "Project name")
     .option("-t, --tag <tag...>", "Tags")
-    .option("-a, --agent <agent>", "Source agent")
     .action(
       async (
         title: string,
@@ -64,7 +63,6 @@ export function createCli(service = new HandoService()): Command {
           id?: string;
           project?: string;
           tag?: string[];
-          agent?: string;
         },
       ) => {
         await runCliAction(async () => {
@@ -74,7 +72,6 @@ export function createCli(service = new HandoService()): Command {
             id: options.id,
             project: options.project,
             tags: options.tag,
-            agent: options.agent,
           });
           console.log(`${saved.meta.id} - ${saved.meta.title}`);
         });

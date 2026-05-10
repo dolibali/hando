@@ -6,6 +6,8 @@ It lets Codex, Claude Code, Gemini CLI, Cursor, and similar agents save a task h
 
 The npm package is `hando-ai`, and the CLI command is `hando`.
 
+Hando is designed to run on macOS, Linux, and Windows with Node.js >= 20.11. Git metadata capture requires `git` to be available on `PATH`; without Git, Hando still saves the task and marks the branch as `not_a_git_repository`.
+
 ## Install
 
 ```bash
@@ -37,6 +39,8 @@ Hando stores task packets in:
 ~/.hando/archive/<task-id>/task.md
 ```
 
+Each saved task includes the handoff content plus the captured working directory (`cwd`), Git branch, optional remote, and lightweight code status. A receiving agent should use that context to enter the right workspace, then rerun `git status` before continuing.
+
 ## Agent Responsibility
 
 Hando is a thin storage and retrieval tool. The calling agent must write the handoff content.
@@ -57,6 +61,27 @@ Hando then persists that agent-written summary into `task.md` and adds lightweig
 When an agent calls `resume`, Hando returns saved task context. The agent should inspect the repo, verify current code state, and continue the task.
 
 Agents should use the Hando MCP tools or CLI commands instead of editing files under `~/.hando` directly.
+
+MCP tool results include structured output and a text JSON fallback:
+
+```json
+{
+  "ok": true,
+  "data": {}
+}
+```
+
+Business errors are returned as tool errors with the same shape:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "validation_failed",
+    "message": "summary is required when creating a new task"
+  }
+}
+```
 
 ## Codex MCP Config
 

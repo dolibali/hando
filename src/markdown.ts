@@ -53,6 +53,8 @@ function parseFrontmatter(frontmatter: string): TaskMeta {
 
   const id = requiredScalar(scalarValues, "id");
   const title = requiredScalar(scalarValues, "title");
+  const cwd = requiredScalar(scalarValues, "cwd");
+  const branch = requiredScalar(scalarValues, "branch");
   const createdAt = requiredScalar(scalarValues, "created_at");
   const updatedAt = requiredScalar(scalarValues, "updated_at");
 
@@ -60,10 +62,9 @@ function parseFrontmatter(frontmatter: string): TaskMeta {
     id,
     title,
     project: optionalScalar(scalarValues, "project"),
-    cwd: optionalScalar(scalarValues, "cwd"),
+    cwd,
     gitRemote: optionalScalar(scalarValues, "git_remote"),
-    branch: optionalScalar(scalarValues, "branch"),
-    sourceAgent: optionalScalar(scalarValues, "source_agent"),
+    branch,
     createdAt,
     updatedAt,
     tags,
@@ -76,10 +77,9 @@ function renderFrontmatter(meta: TaskMeta): string {
     `title: ${escapeYamlScalar(meta.title)}`,
   ];
   pushOptional(lines, "project", meta.project);
-  pushOptional(lines, "cwd", meta.cwd);
+  lines.push(`cwd: ${escapeYamlScalar(meta.cwd)}`);
   pushOptional(lines, "git_remote", meta.gitRemote);
-  pushOptional(lines, "branch", meta.branch);
-  pushOptional(lines, "source_agent", meta.sourceAgent);
+  lines.push(`branch: ${escapeYamlScalar(meta.branch)}`);
   lines.push(`created_at: ${escapeYamlScalar(meta.createdAt)}`);
   lines.push(`updated_at: ${escapeYamlScalar(meta.updatedAt)}`);
   lines.push("tags:");
@@ -110,13 +110,22 @@ function optionalScalar(values: Map<string, string>, key: string): string | unde
 
 function unquote(value: string): string {
   const trimmed = value.trim();
-  if (
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return parseJsonQuotedScalar(trimmed);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
     return trimmed.slice(1, -1);
   }
   return trimmed;
+}
+
+function parseJsonQuotedScalar(value: string): string {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return typeof parsed === "string" ? parsed : value.slice(1, -1);
+  } catch {
+    return value.slice(1, -1);
+  }
 }
 
 function escapeYamlScalar(value: string): string {

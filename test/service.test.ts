@@ -2,6 +2,7 @@ import { mkdtemp, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { parseTaskMarkdown, renderTaskMarkdown } from "../src/markdown.js";
 import { getHandoPaths } from "../src/paths.js";
 import { HandoService } from "../src/storage.js";
 
@@ -20,15 +21,18 @@ describe("HandoService", () => {
       title: "Implement setup token handoff",
       summary: "Task background, current progress, next steps, and risks.",
       cwd: home,
-      agent: "codex",
     });
 
     expect(saved.meta.id).toBe("implement-setup-token-handoff");
+    expect(saved.meta.cwd).toBe(home);
+    expect(saved.meta.branch).toBe("not_a_git_repository");
     const taskPath = join(home, "tasks", saved.meta.id, "task.md");
     await expect(stat(taskPath)).resolves.toBeTruthy();
     await expect(stat(join(home, "tasks", saved.meta.id, "git.json"))).rejects.toThrow();
 
     const markdown = await readFile(taskPath, "utf8");
+    expect(markdown).toContain(`cwd: ${home}`);
+    expect(markdown).toContain("branch: not_a_git_repository");
     expect(markdown).toContain("## 任务交接说明");
     expect(markdown).toContain("## 当前代码状态");
     expect(markdown).toContain("Git 状态：不可用");
@@ -87,5 +91,28 @@ describe("HandoService", () => {
     expect(second.meta.id).toBe(first.meta.id);
     expect(await service.list()).toHaveLength(1);
     expect((await service.get(first.meta.id)).body).toContain("Updated handoff");
+  });
+
+  it("round-trips Windows working directories in task frontmatter", () => {
+    const markdown = renderTaskMarkdown(
+      {
+        id: "windows-path-task",
+        title: "Windows path task",
+        project: "hando",
+        cwd: "C:\\Users\\me\\work\\hando",
+        gitRemote: "https://github.com/dolibali/hando.git",
+        branch: "feature/windows-path",
+        createdAt: "2026-05-10T00:00:00.000Z",
+        updatedAt: "2026-05-10T00:00:00.000Z",
+        tags: ["windows"],
+      },
+      "# Windows path task",
+    );
+
+    const parsed = parseTaskMarkdown(markdown);
+
+    expect(markdown).toContain('cwd: "C:\\\\Users\\\\me\\\\work\\\\hando"');
+    expect(parsed.meta.cwd).toBe("C:\\Users\\me\\work\\hando");
+    expect(parsed.meta.branch).toBe("feature/windows-path");
   });
 });
