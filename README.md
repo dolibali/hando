@@ -56,6 +56,8 @@ Hando then persists that agent-written summary into `task.md` and adds lightweig
 
 When an agent calls `resume`, Hando returns saved task context. The agent should inspect the repo, verify current code state, and continue the task.
 
+Agents should use the Hando MCP tools or CLI commands instead of editing files under `~/.hando` directly.
+
 ## Codex MCP Config
 
 Recommended config without global install:

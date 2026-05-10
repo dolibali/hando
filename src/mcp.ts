@@ -20,7 +20,7 @@ export function createMcpServer(service = new HandoService()): McpServer {
     {
       title: "Save handoff task",
       description:
-        "Persist an agent-written handoff summary into a local Markdown file at ~/.hando/tasks/<task-id>/task.md. Use when the user asks to save progress, hand off to another AI agent, or when the current agent may stop soon. Hando writes the file; the calling agent must provide the task context in summary. The title must be the real task name, and summary must be detailed enough for another agent to continue without reading this chat: background, goal, current implementation, progress, next steps, risks, validation, and instructions.",
+        "Persist an agent-written handoff summary through Hando. Use when the user asks to save progress, hand off to another AI agent, or when the current agent may stop soon. Do not write Hando storage files directly; call this tool. Hando handles durable storage and retrieval. The calling agent must provide the task context in summary. The title must be the real task name, and summary must be detailed enough for another agent to continue without reading this chat: background, goal, current implementation, progress, next steps, risks, validation, and instructions.",
       inputSchema: {
         title: z.string().min(1),
         summary: z.string().optional(),
@@ -38,7 +38,7 @@ export function createMcpServer(service = new HandoService()): McpServer {
     {
       title: "Resume handoff task",
       description:
-        "Find and return a saved local Markdown handoff file for a coding task. Use when the user asks to continue previous work from another AI agent. The returned content is task context, not the final answer; after reading it, inspect the cwd/repo and continue the task.",
+        "Find and return a saved Hando handoff packet for a coding task. Use when the user asks to continue previous work from another AI agent. The returned content is task context, not the final answer; after reading it, inspect the cwd/repo and continue the task.",
       inputSchema: {
         query: z.string().optional(),
         id: z.string().optional(),
@@ -69,7 +69,7 @@ export function createMcpServer(service = new HandoService()): McpServer {
     {
       title: "Get handoff task",
       description:
-        "Read a full saved Markdown handoff task by id. Use after ls/resume returns candidates and a specific id is chosen.",
+        "Read a full saved Hando handoff task by id. Use after ls/resume returns candidates and a specific id is chosen.",
       inputSchema: {
         id: z.string().min(1),
         archive: z.boolean().optional(),

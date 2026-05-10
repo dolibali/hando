@@ -22,6 +22,7 @@ Hando v1 的核心目标是：
 - Agent 负责理解任务，并写出交接内容。
 - Hando 负责把 Agent 写好的交接内容持久化到 `task.md`，并在后续检索和返回。
 - Hando 不替 Agent 判断任务背景、当前进度或后续工作。
+- Agent 不应直接编辑 `~/.hando` 下的存储文件；应通过 Hando MCP 工具或 CLI 读写。
 
 Hando 不是：
 
@@ -300,6 +301,8 @@ MCP 是 Hando v1 的主要使用入口，因为主要调用者是 AI Agent。
 创建或更新任务交接包，并把 Git 轻量信息写入 `task.md`。
 
 `save` 的关键边界是：调用方 Agent 必须先写好交接内容，Hando 只负责持久化。Hando 不会自动理解任务，也不会自动生成背景、目标、进度或后续工作。
+
+面向 Agent 的 MCP tool description 不应强调具体存储路径，避免 Agent 绕过 Hando 直接写文件。路径细节只作为人类和实现者理解存储结构的文档。
 
 参数：
 
