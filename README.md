@@ -21,6 +21,8 @@ You can also run it without global install:
 npx -y hando-ai --help
 ```
 
+If you want to test the latest source code before it is published to npm, see [Windows source MCP setup](docs/windows-source-mcp.md).
+
 ## CLI Usage
 
 ```bash
